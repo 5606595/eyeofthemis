@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        h2 {
+            text-align: center;
+        }
+        #top {
+            position: absolute;
+            top: 40px;
+            width: 100%;
+            height: 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+            font-size: 14px;
+        }
+        .search {
+            height: 100%;
+            width: 60%;
+            display: flex;
+            position: absolute;
+            justify-content: center;
+            margin: auto;
+            left: 50%;
+            top: 0;
+            transform: translate3d(-50%, -50%, 0);
+            transition: all .2s linear;
+            align-items: center;
+            padding: 10px;
+            border-radius: 5px;
+            background-image: -webkit-repeating-linear-gradient(45deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.05) 25%, transparent 25%, transparent 50%);
+            background-color: #151515;
+            background-size: 6px 6px;
+            box-shadow: inset 0px 25px 0px 0px rgba(255,255,255,0.15);
+        }
+        .search input {
+            height: 100%;
+            line-height: 30px;
+            outline: none;
+            background: -webkit-linear-gradient(top, #1b1b1b 0%, #262626 100%);
+            border-radius: 5px;
+            border: 1px solid #000;
+            color: #909090;
+            width: 100%;
+            text-indent: 15px;
+            padding-right: 70px;
+            box-shadow: 0 1px 0 rgba(255,255,255,0.2), inset 0 2px 0 rgba(0,0,0,0.5)
+        }
+        #search {
+            position: absolute;
+            right: 10px;
+            top: 11px;
+            width: 70px;
+            height: 28px;
+            border: 0;
+            color: white;
+            letter-spacing: 2px;
+            border-radius: 5px;
+            border: 1px solid black;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.16);
+            background: -webkit-linear-gradient(bottom, #0F0F0F 0%, #222 100%);
+            outline: none;
+        }
+        #search:hover {
+            cursor: pointer;
+        }
+        html, body {
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        #graph {
+            float: left;
+            width: 50%;
+            height: 100%;
+        }
+        #display {
+            position: relative;
+            padding-top: 60px;
+            width: 50%;
+            height: 100%;
+            float: left;
+            background: #000;
+            color: rgb(75, 255, 255);
+            overflow: auto;
+        }
+        #table {
+            width: 100%;
+            background: rgba(75, 255, 255, 0.0980392);
+        }
+        .dangerous {
+            color: rgb(243, 112, 111)
+        }
+        #table th {
+            text-align: center;
+        }
+        #table th:nth-of-type(1) {
+            min-width: 80px
+        }
+        #table th:nth-of-type(3) {
+            min-width: 80px
+        }
+        #table td {
+            text-align: center;
+        }
+        #table tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+    <link rel="stylesheet" href="styles/boots.css">
+</head>
+<body>
+    <div id="graph">
+
+    </div>
+    <div id="display">
+        <div id="top">
+            <form class="search">
+                <input type="text" placeholder="请输入你要判断敏感的内容" id="text">
+                <button id="search">搜索</button>
+            </form>
+        </div>
+        <h2>用户行为分析</h2>
+        <table id="table">
+            <thead>
+            <tr>
+                <th>
+                    用户id
+                </th>
+                <th>
+                    动态内容
+                </th>
+                <th>
+                    行为分析
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+</body>
+<script src="js/jquery-1.11.2.min.js"></script>
+<script src="js/dist/echarts.js"></script>
+<script>
+    $.ajax({
+        url: '/heatInit',
+        method: 'GET',
+        success: function(data) {
+            require.config({
+                paths: {
+                    echarts: 'js/dist'
+                }
+            })
+            require([
+                'echarts',
+                'echarts/chart/map',
+                'echarts/chart/heatmap'
+            ], function (ec) {
+                var myChart = ec.init(document.getElementById("graph"));
+                console.log(data);
+                var option = {
+                    backgroundColor: '#000',
+                    //color: ['red', 'orange', 'yellow', 'lime', 'white'],
+                    title: {
+                        text: '敏感程度热力图',
+                        //subtext: 'testtesttesttesttesttest',
+                        x: 'center',
+                        textStyle: {
+                            color: '#fff'
+                        }
+                    },
+                    tooltip: {
+                        show : true,
+                        //trigger: 'axis',
+                        formatter: function(param) {
+                            if(param.data.city !== undefined) {
+                                return param.data.city;
+                            }
+                            return "英国"
+                        },
+                        transitionDuration: 0.2
+                    },
+                    toolbox: {
+                        show: false,
+                        orient: 'vertical',
+                        x: 'right',
+                        y: 'center',
+                        feature: {
+                            mark: {show: true},
+                            dataView: {show: true, readOnly: false},
+                            restore: {show: true},
+                            saveAsImage: {show: true}
+                        }
+                    },
+                    series: [
+                        {
+                            name: '英国',
+                            type: 'map',
+                            roam: true,   //滚轮缩放
+                            hoverable: false,
+                            mapType: 'world|United Kingdom',
+                            itemStyle: {
+                                normal: {
+                                    borderColor: '#4bffff',
+                                    borderWidth: 0.5,
+                                    areaStyle: {
+                                        color: '#000'
+                                    }
+                                }
+                            },
+                            data: [],
+                            heatmap: {
+                                minAlpha: 0.1,
+                                data: []
+                            },
+                            markLine: {
+                                smooth: true,
+                                smoothness: 0.6,
+                                //symbol: ['none', 'circle'],   // point 的 标志
+                                //symbolSize: 1,
+                                //bundling: {               //边捆绑
+                                //    enable: true,
+                                //    maxTurningAngle: 0
+                                //},
+                                effect: {
+                                    show: true,
+                                    period: 30,
+                                    scaleSize : 1,
+                                    color : '#FFF',
+                                    shadowBlur : 10
+                                },
+                                itemStyle: {
+                                    normal: {
+                                        borderWidth: 1,
+                                        label: {show: false},
+                                        borderColor: "#F00",
+                                        lineStyle: {
+                                            type: 'solid',
+                                            shadowBlur: 10
+                                        }
+                                    }
+                                },
+                                data: []
+                            },
+                            markPoint: {
+                                symbol: 'emptyCircle',
+                                symbolSize: 15,
+                                effect: {
+                                    show: true,
+                                    shadowBlur: 0
+                                },
+                                itemStyle: {
+                                    normal: {
+                                        label: {show: true},
+                                        color : '#fff'
+                                    },
+                                    emphasis: {
+                                        label: {position: 'top'}
+                                    }
+                                },
+                                data: []
+                            },
+                            geoCoord: {}
+                        },
+                        {
+                            name: '英国',
+                            type: 'map',
+                            roam: true,   //滚轮缩放
+                            hoverable: false,
+                            mapType: 'world|United Kingdom',
+                            itemStyle: {
+                                normal: {
+                                    borderColor: '#404a59',
+                                    borderWidth: 0.5,
+                                    areaStyle: {
+                                        color: '#1b1b1b'
+                                    }
+                                }
+                            },
+                            data: [],
+                            markLine: {
+                                smooth: true,
+                                smoothness: 0.6,
+                                //symbol: ['none', 'circle'],   // point 的 标志
+                                //symbolSize: 1,
+                                //bundling: {               //边捆绑
+                                //    enable: true,
+                                //    maxTurningAngle: 0
+                                //},
+                                effect: {
+                                    show: true,
+                                    period: 30,
+                                    scaleSize : 1,
+                                    color : '#FFF',
+                                    shadowBlur : 10
+                                },
+                                itemStyle: {
+                                    normal: {
+                                        borderWidth: 1,
+                                        label: {show: false},
+                                        borderColor: "#F00",
+                                        lineStyle: {
+                                            type: 'solid',
+                                            shadowBlur: 10
+                                        }
+                                    }
+                                },
+                                data: []
+                            },
+                            markPoint: {
+                                symbol: 'emptyCircle',
+                                symbolSize: 15,
+                                effect: {
+                                    show: true,
+                                    shadowBlur: 0
+                                },
+                                itemStyle: {
+                                    normal: {
+                                        label: {show: true},
+                                        color : '#fff'
+                                    },
+                                    emphasis: {
+                                        label: {position: 'top'}
+                                    }
+                                },
+                                data: []
+                            },
+                            geoCoord: {}
+                        }
+                    ]
+                };
+                var arr = [{"position":"1","value":"2"},
+                    {"position":"2","value":"1"},
+                    {"position":"3","value":"0"},
+                    {"position":"4","value":"1"},
+                    {"position":"5","value":"3"},
+                    {"position":"6","value":"1"},
+                    {"position":"7","value":"2"},
+                    {"position":"8","value":"3"}]
+                for(var i = 0, j = data.length; i < j; i++) {
+                    console.log(data[i].id);
+                    option.series[0].geoCoord[data[i].id] = [data[i].site_x, data[i].site_y];
+                    option.series[0].heatmap.data.push(
+                            [data[i].site_x, data[i].site_y, Math.random()]
+                    );
+                    for(var p = 0, q = arr[i].value * 30; p < q; p++) {
+                        option.series[0].heatmap.data.push([
+                            Number(data[i].site_x) + (Math.random() * 2 - 1) ,
+                            Number(data[i].site_y) + (Math.random() * 0.8 - 0.4),
+                            Math.random()
+                        ])
+                    }
+                }
+                myChart.setOption(option);
+            })
+        }
+    })
+    $.ajax({
+        url: '/threatInit',
+        method: 'GET',
+        success: function(data) {
+            var tableHtml = ""
+            data.terror.map(function(temp) {
+                tableHtml +=    "<tr class='dangerous'>" +
+                        "<td>" + temp.user_id + "</td>" +
+                        "<td>" + temp.news_content + "</td>" +
+                        "<td>" + "有威胁" + "</td>" +
+                        "</tr>"
+            })
+            data.normal.map(function(temp) {
+                tableHtml +=    "<tr>" +
+                        "<td>" + temp.user_id + "</td>" +
+                        "<td>" + temp.news_content + "</td>" +
+                        "<td>" + "无威胁" + "</td>" +
+                        "</tr>"
+            });
+            $("#table tbody").html(tableHtml);
+        }
+    })
+    $("form").submit(function(eve) {
+        eve.preventDefault();
+        $.ajax({
+            url: '/threatSearch',
+            method: 'GET',
+            data: {
+                content: $('#text').val()
+            },
+            success: function(data) {
+                alert(data);
+            }
+        })
+    })
+</script>
+<!--<script>-->
+    <!--$.ajax({-->
+        <!--url: '/threatInit',-->
+        <!--method: 'GET',-->
+        <!--success: function(data) {-->
+            <!--var tableHtml = ""-->
+            <!--data.terror.map(function(temp) {-->
+                <!--tableHtml +=    "<tr class='danger'>" +-->
+                                <!--"<td>" + temp.user_id + "</td>" +-->
+                                <!--"<td>" + temp.news_content + "</td>" +-->
+                                <!--"<td>" + "有威胁" + "</td>" +-->
+                                <!--"</tr>"-->
+            <!--})-->
+            <!--data.normal.map(function(temp) {-->
+                <!--tableHtml +=    "<tr>" +-->
+                                <!--"<td>" + temp.user_id + "</td>" +-->
+                                <!--"<td>" + temp.news_content + "</td>" +-->
+                                <!--"<td>" + "无威胁" + "</td>" +-->
+                                <!--"</tr>"-->
+            <!--});-->
+            <!--$("#table tbody").html(tableHtml);-->
+        <!--}-->
+    <!--})-->
+<!--</script>-->
+</html>
